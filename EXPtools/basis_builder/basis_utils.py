@@ -3,7 +3,7 @@ import numpy as np
 from scipy.linalg import norm
 from EXPtools.basis_builder import makemodel
 
-def make_config(basis_id, numr, rmin, rmax, lmax, nmax, scale, 
+def make_config(basis_id, numr, rmin, rmax, lmax, nmax, scale,
                 modelname='', cachename='.slgrid_sph_cache'):
     """
     Creates a configuration file required to build a basis model.
@@ -25,7 +25,7 @@ def make_config(basis_id, numr, rmin, rmax, lmax, nmax, scale,
     Raises:
     None
     """
-    
+
     config = 'id: {:s}\n'.format(basis_id)
     config += 'parameters:\n'
     config += '  numr: {:d}\n'.format(numr)
@@ -38,7 +38,7 @@ def make_config(basis_id, numr, rmin, rmax, lmax, nmax, scale,
     config += '  cachename: {}\n'.format(cachename)
     return config
 
-    
+
 def makebasis(pos, mass, basis_model, config=None, basis_id='sphereSL', time=0,
               r_s=1.0, r_c=0.0,
               nbins=500, rmin=0.61, rmax=599, log_space=True, lmax=4, nmax=20, scale=1,
@@ -47,7 +47,6 @@ def makebasis(pos, mass, basis_model, config=None, basis_id='sphereSL', time=0,
               ):
     """
     Create a BFE expansion for a given set of particle positions and masses.
-    
     Parameters:
     pos (numpy.ndarray): The positions of particles. Each row represents one particle, 
                          and each column represents the coordinate of that particle.

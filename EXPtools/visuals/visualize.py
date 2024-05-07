@@ -81,8 +81,10 @@ def find_field(basis, coefficients, time=0, xyz=(0, 0, 0), property='dens', incl
     ------
         ValueError: If the property argument is not 'dens', 'pot', or 'force'.
     """
-
-    coefficients.set_coefs(coefficients.getCoefStruct(time))
+    try:
+        basis.set_coefs(coefficients.getCoefStruct(time))
+    except AttributeError:
+        basis.set_coefs(coefficients)
     dens0, pot0, dens, pot, fx, fy, fz = basis.getFields(xyz[0], xyz[1], xyz[2])
     
     if property == 'dens':
@@ -100,8 +102,9 @@ def find_field(basis, coefficients, time=0, xyz=(0, 0, 0), property='dens', incl
 
     else:
         raise ValueError("Invalid property specified. Possible values are 'dens', 'pot', and 'force'.")
-    
-def spherical_avg_prop(basis, coefficients, time=0, radius=np.linspace(0.1, 600, 100), property='dens'):
+
+
+def spherical_avg_prop(basis, coefficients, time=0, property='dens', rmin=0, rmax=600, nbins=500, log_space=True, include_monopole=True):
     """
     Computes the spherically averaged value of the specified property of the field over the given radii.
 
@@ -109,35 +112,39 @@ def spherical_avg_prop(basis, coefficients, time=0, radius=np.linspace(0.1, 600,
     ----------
     basis: object
         bject containing the basis functions for the simulation.
-    coefficients: object 
+    coefficients: object
         bject containing the coefficients for the simulation.
-    time: float (optional) 
+    time: float (optional)
         The time at which to evaluate the field. Default is 0.
-    radius: ndarray (optional) 
-        An array of radii over which to compute the spherically averaged property. Default is an array of 100 values logarithmically spaced between 0.1 and 600.
     property:  str (optional)
         The property of the field to evaluate. Can be 'dens', 'pot', or 'force'. Default is 'dens'.
-
+    rmin: float(optional)
+        The minimum radius to evaluate the field, default is 0.
+    rmax: float(optional)
+        The maximum radius to evaluate the field, default is 600.
+    nbins: int(optional)
+        The amount of bins between rmin and rmax to evaluate the field, default is 500.
+    log_space: bool(optional)
+        If the binning in radius should be done logarithmically or linearly. default is True.
+    include_monopole: bool(optional)
+        If the representation of property should be over all orders or only the 0th. default is True.
     Returns
     -------
-    field_r: Array  
+    field_r: Array
         An array of spherically averaged values of the specified field over the given radii.
 
     radius: array
         Radius at where the field is evaluated
     Raises:
-    ValueError: 
+    ValueError:
         If the property argument is not 'dens', 'pot', or 'force'.
     """
-
-    coefficients.set_coefs(coefficients.getCoefStruct(time))
-    field = [find_field(basis, np.hstack([[rad], [0], [0]]), property=property, include_monopole=True) for rad in radius]
-
-    if property == 'force':
-        return np.vstack(field), radius
-
-    return np.array(field), radius
-
+    if log_space is True:
+        rad_arr = np.logspace(rmin, rmax, nbins)
+    else:
+        rad_arr = np.linspace(rmin, rmax, nbins)
+    field = [find_field(basis, coefficients, time=time, xyz=(rad, 0, 0), property=property, include_monopole=include_monopole) for rad in rad_arr]
+    return rad_arr, field
 
 def make_grid(gridtype, gridspecs, rgrid, representation='cartesian'):
     """
