@@ -439,4 +439,58 @@ def slice_3d_fields(basis, coefficients, time=0,  npoints=50,
 
     if prop == 'force':
         return [fx.reshape(npoints, npoints, npoints), fy.reshape(npoints, npoints, npoints), fz.reshape(npoints, npoints, npoints)], xgrid
+
+
+def empirical_slice(pos, mass,
+                    projection='XY', proj_plane=0,
+                    Lz=1e-1, npoints=300,
+                    grid_limits=(-300,300),
+                    prop='dens'):
+    """
+    Obtain a slice projection of the empirically obtained field of the particles provided.
     
+    Args:
+    pos (ndarray): array of particle position in cartesian coordinates with shape (n,3).
+    mass (ndarray): array of particle masses with shape (n,).
+    projection (str): the slice projection to consider
+    proj_plane (float,optional)
+    npoints (int, optional)
+    grid_limits (tuple, optional)
+    prop (str, optional)
+    """
+    if projection not in ['XY','XZ','YZ']:
+        raise valueError('Invalid Projection, must be XY, XZ , or YZ')
+    if projection == 'XY':
+        in_slice = np.where(abs(pos[:,2]) < proj_plane+Lz)[0]
+    elif projection == 'XZ':
+        in_slice = np.where(abs(pos[:,1]) < proj_plane+Lz)[0]
+    elif projection == 'YZ':
+        in_slice = np.where(abs(pos[:,0]) < proj_plane+Lz)[0]
+    pos_slice,mass_slice = pos[in_slice,:],mass[in_slice]
+    # i have only implemented density
+    if prop == 'dens':
+        rho, xbins, ybins = np.histogram2d(pos_slice[:,0],pos_slice[:,1],bins=npoints, weights=mass_slice**-1,
+                                       range=[[grid_limits[0],grid_limits[1]],[grid_limits[0],grid_limits[1]]])
+        rho = rho/Lz
+        return (xbins[0:-1], ybins[0:-1], rho)
+    if prop == 'pot':
+        return (xbins[0:-1], ybins[0:-1], pot)
+    if prop == 'force':
+        return (xbins[0:-1], ybins[0:-1], forcex, forcey, forcez)
+    return 1
+
+
+def residual_slice(pos, mass, basis, coefs, projection='XY', prop='dens', npoints=300, grid_limits=(-300,300)):
+    """
+    """
+    if prop == 'dens':
+        # obtain the slice from the basis and coefs
+        basisrho0, basisrho, basisgrid = EXPtools.visuals.visualize.slice_fields(NFW_basis,NFW_coefs, projection=projection,npoints=npoints,grid_limits=grid_limits,prop=prop)
+    return 1
+
+
+def residual_slice(pos, mass, basis, coefs):
+    """
+    Computes the residual slice between the raw data provided and a given basis and coefficients representation.
+    """
+    return 1
